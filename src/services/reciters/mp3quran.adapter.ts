@@ -1,3 +1,4 @@
+import { Language } from '@/constants/language';
 import type { Reciter } from '@/types';
 import { LinkSource } from '@/types';
 
@@ -6,12 +7,24 @@ import type { Mp3QuranApiResponse } from './mp3quran.types';
 import type { ReciterSource } from './reciter-source';
 import { retryFetch } from './shared-fetch';
 
+const getMp3QuranApiLanguage = (lang: Language): string => {
+  switch (lang) {
+    case 'en':
+      return 'eng';
+    case 'de':
+      return 'de';
+    case 'ar':
+    default:
+      return 'ar';
+  }
+};
+
 export const Mp3QuranAdapter: ReciterSource = {
   source: LinkSource.MP3QURAN,
 
-  async getReciters(lang: 'ar' | 'en'): Promise<Reciter[]> {
-    const apiLang = lang === 'en' ? 'eng' : 'ar';
-
+  async getReciters(lang: Language): Promise<Reciter[]> {
+    const apiLang = getMp3QuranApiLanguage(lang);
+    console.log('MP3Quran language:', lang, 'API language:', apiLang);
     const response = await retryFetch(
       `https://www.mp3quran.net/api/v3/reciters?language=${apiLang}`
     );
