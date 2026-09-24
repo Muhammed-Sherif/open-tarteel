@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+.devin
+testsprite_tests
 
 # next.js
 /.next/
@@ -49,3 +51,5 @@ public/swe-worker*
 
 #Ignore vscode AI rules
 .github\copilot-instructions.md
+testsprite_tests/tmp/
+testsprite_tests/tmp/config.json
