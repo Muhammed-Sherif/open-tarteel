@@ -1,17 +1,36 @@
+import { cache } from 'react';
+
+import { Language } from '@/constants/language';
 import type { LinkSource, Reciter } from '@/types';
 
+const getServerReciters = cache(
+  async (locale: Language, sourcesKey: string | null): Promise<Reciter[]> => {
+    const { getAllRecitersFromAdapters } = await import('@/services/reciters');
+    const sources = sourcesKey ? (sourcesKey.split(',') as LinkSource[]) : null;
+    return getAllRecitersFromAdapters(locale, sources);
+  }
+);
+
 export async function getAllReciters(
-  locale: 'ar' | 'en' = 'ar',
+  locale: Language = 'ar',
   enabledSources: LinkSource[] | null = null
 ): Promise<Reciter[]> {
   const isServer = typeof window === 'undefined';
 
   if (isServer) {
-    const { getAllRecitersFromAdapters } = await import('@/services/reciters');
-    return getAllRecitersFromAdapters(locale, enabledSources);
+    if (process.env.NODE_ENV === 'test') {
+      const { getAllRecitersFromAdapters } =
+        await import('@/services/reciters');
+      return getAllRecitersFromAdapters(locale, enabledSources);
+    }
+    const sourcesKey =
+      enabledSources && enabledSources.length > 0
+        ? [...enabledSources].sort().join(',')
+        : null;
+    return getServerReciters(locale, sourcesKey);
   }
 
-  const language = locale === 'en' ? 'eng' : 'ar';
+  const language: Language = locale;
   const params = new URLSearchParams({ language });
   if (enabledSources && enabledSources.length > 0) {
     params.set('sources', enabledSources.join(','));
@@ -30,19 +49,17 @@ export async function getAllReciters(
 export async function getReciter(
   id: string,
   moshafId: string,
-  locale: 'ar' | 'en' = 'ar',
+  locale: Language = 'ar',
   enabledSources: LinkSource[] | null = null
 ): Promise<Reciter | undefined> {
   const isServer = typeof window === 'undefined';
 
   if (isServer) {
-    const { getAllRecitersFromAdapters } = await import('@/services/reciters');
-    const reciters = await getAllRecitersFromAdapters(locale, enabledSources);
+    const reciters = await getAllReciters(locale, enabledSources);
     return reciters.find((r) => r.id === id && r.moshaf.id === moshafId);
   }
 
-  const language = locale === 'en' ? 'eng' : 'ar';
-  const params = new URLSearchParams({ language });
+  const params = new URLSearchParams({ language: locale });
   if (enabledSources && enabledSources.length > 0) {
     params.set('sources', enabledSources.join(','));
   }

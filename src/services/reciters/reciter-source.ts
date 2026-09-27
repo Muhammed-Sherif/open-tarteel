@@ -1,6 +1,7 @@
+import { Language } from '@/constants/language';
 import { Reciter } from '@/types';
 
 export type ReciterSource = {
   readonly source: string;
-  getReciters(lang: 'ar' | 'en'): Promise<Reciter[]>;
+  getReciters(_lang: Language): Promise<Reciter[]>;
 };

@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+.devin
+testsprite_tests
 
 # next.js
 /.next/
@@ -45,7 +47,10 @@ next-env.d.ts
 # Serwist PWA
 public/sw*
 public/swe-worker*
+public/offline.html
 
 
 #Ignore vscode AI rules
 .github\copilot-instructions.md
+testsprite_tests/tmp/
+testsprite_tests/tmp/config.json

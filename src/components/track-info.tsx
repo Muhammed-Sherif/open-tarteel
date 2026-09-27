@@ -8,7 +8,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { SURAHS } from '@/constants';
 import { useOfflineDownload } from '@/hooks/use-offline-download';
 import { selectedReciterAtom } from '@/jotai/atom';
-import { formatBytes, formatTime, removeTashkeel } from '@/utils';
+import { formatBytes, formatTime, getSurahDisplayName } from '@/utils';
 
 type Props = {
   currentTrackId: number;
@@ -36,14 +36,8 @@ export default function TrackInfo({
 
   const { surahId } = currentTrack;
   const surahName = () => {
-    if (language === 'en') {
-      return SURAHS.find((surah) => surah.id.toString() === surahId)
-        ?.englishName;
-    }
-
-    return removeTashkeel(
-      SURAHS.find((surah) => surah.id.toString() === surahId)?.name || ''
-    );
+    const surah = SURAHS.find((s) => s.id.toString() === surahId);
+    return surah ? getSurahDisplayName(surah, language) : '';
   };
 
   const allCached = isAllCached(playlist);

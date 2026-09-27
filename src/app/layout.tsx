@@ -1,17 +1,43 @@
 import './globals.css';
 
-import { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Tajawal } from 'next/font/google';
+import { cookies, headers } from 'next/headers';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 import { EnabledSourcesCookieSync } from '@/components/enabled-sources-cookie-sync';
 import FullscreenController from '@/components/fullscreen-controller';
 import HtmlWrapper from '@/components/html-wrapper';
 import IntlProviderWrapper from '@/components/intl-provider-wrapper';
-import { clientConfig } from '@/utils';
+import OfflineRedirect from '@/components/offline-redirect';
+import PwaUpdater from '@/components/pwa-updater';
+import StoragePersist from '@/components/storage-persist';
+import type { Language } from '@/constants/language';
+import { clientConfig, getDefaultLocale } from '@/utils';
+
+export const viewport: Viewport = {
+  themeColor: '#000000',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(clientConfig.APP_URL),
+  applicationName: 'Open Tarteel',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Open Tarteel',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: '/images/192x192.png',
+    apple: '/images/192x192.png',
+  },
   title: 'Open Tarteel — Quran Audio Player',
   description:
     'Listen to the Holy Quran recited by world-renowned reciters. Free, open-source Quran audio player with playlist support.',
@@ -38,25 +64,39 @@ const tajawal = Tajawal({
   preload: true,
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const headerStore = await headers();
+
+  const cookieLocale = cookieStore.get('locale')?.value;
+  const acceptLanguage = headerStore.get('accept-language');
+
+  const resolvedLocale: Language =
+    cookieLocale === 'ar' || cookieLocale === 'en' || cookieLocale === 'de'
+      ? cookieLocale
+      : getDefaultLocale(acceptLanguage);
+
   return (
     <NuqsAdapter>
-      <IntlProviderWrapper>
+      <IntlProviderWrapper initialLocale={resolvedLocale}>
         <HtmlWrapper>
           <body
             className={`${tajawal.className} min-h-full bg-background antialiased`}
           >
-            <main className="duration-350 relative flex min-h-dvh w-full flex-col items-center justify-center bg-background text-foreground transition-colors">
+            <main className="relative flex min-h-dvh w-full flex-col items-center justify-center bg-background text-foreground">
               <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
                 <div className="absolute -left-[10%] -top-[15%] h-[520px] w-[520px] rounded-full bg-sky-500/[0.06] blur-[80px] dark:bg-sky-400/[0.07]" />
                 <div className="absolute -right-[8%] top-[25%] h-[420px] w-[420px] rounded-full bg-indigo-500/[0.05] blur-[80px] dark:bg-indigo-400/[0.07]" />
                 <div className="absolute bottom-[-10%] left-[35%] h-[340px] w-[340px] rounded-full bg-violet-500/[0.04] blur-[70px] dark:bg-violet-400/[0.06]" />
               </div>
               <EnabledSourcesCookieSync />
+              <StoragePersist />
+              <OfflineRedirect />
+              <PwaUpdater />
               <FullscreenController>{children}</FullscreenController>
             </main>
           </body>

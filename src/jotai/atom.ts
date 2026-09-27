@@ -1,4 +1,6 @@
+import type { Language } from '@/constants/language';
 import { LinkSource, Reciter, Riwaya } from '@/types';
+import { getDefaultLocale } from '@/utils/get-default-locale';
 
 import { createAtomWithStorage } from './create-atom-with-storage';
 
@@ -10,10 +12,6 @@ export const selectedRiwayaAtom = createAtomWithStorage<Riwaya | 'all'>(
   'selected-riwaya',
   'all'
 );
-export const hideUnderConstructionAtom = createAtomWithStorage<boolean>(
-  'hide-under-construction',
-  false
-);
 export const fullscreenAtom = createAtomWithStorage<boolean>(
   'fullscreen',
   false
@@ -23,7 +21,17 @@ export const showVisualizerAtom = createAtomWithStorage<boolean>(
   true
 );
 
-export const localeAtom = createAtomWithStorage<'ar' | 'en'>('locale', 'ar');
+const getInitialLocale = (): Language => {
+  if (typeof window !== 'undefined') {
+    return getDefaultLocale(navigator.language);
+  }
+  return 'ar';
+};
+
+export const localeAtom = createAtomWithStorage<Language>(
+  'locale',
+  getInitialLocale()
+);
 
 export const currentTimeAtom = createAtomWithStorage<number>('current-time', 0);
 
